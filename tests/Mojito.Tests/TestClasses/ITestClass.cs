@@ -1,6 +1,6 @@
 namespace Mojito.Tests.TestClasses
 {
-    public class TestClassA : ITestClass
+    public interface ITestClass
     {
     }
 }

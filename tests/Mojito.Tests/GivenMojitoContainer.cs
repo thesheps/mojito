@@ -70,5 +70,16 @@ namespace Mojito.Tests
 
             Assert.Throws<UnknownRegistrationException>(() => container.Resolve<ITestClass>());
         }
+
+        [Test]
+        public void WhenIBindAConcreteInstanceToDerivedConcreteTypesWithNamedRegistrationsAndAttemptToResolveWithoutName_ThenUnknownRegistrationExceptionIsThrown()
+        {
+            var container = new MojitoContainer();
+            container.Register<TestClassA, TestClassA>("A");
+            container.Register<TestClassA, TestClassC>("B");
+
+            var results = container.Resolve<TestClassA>();
+            Assert.That(results, Is.Not.Null);
+        }
     }
 }

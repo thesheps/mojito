@@ -8,7 +8,7 @@ namespace Mojito
     {
         void Singleton<T1, T2>(T2 implementation, string name) where T2 : T1;
         void Singleton<T1, T2>(T2 implementation) where T2 : T1;
-        void Register<T1, T2>(string name);
+        void Register<T1, T2>(string name) where T2 : T1;
         void Register<T1, T2>() where T2 : T1;
         void Register<T>(Func<object> factory, string name);
         void Register<T>(Func<object> factory);
@@ -33,7 +33,7 @@ namespace Mojito
             Register<T1, T2>(string.Empty);
         }
 
-        public void Register<T1, T2>(string name)
+        public void Register<T1, T2>(string name) where T2 : T1
         {
             Register(typeof(T1), name, () => Activator.CreateInstance<T2>());
         }
