@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="GivenMojitoContainer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestClasses\TestClassD.cs" />
     <Compile Include="TestClasses\ITestClass.cs" />
     <Compile Include="TestClasses\TestClassC.cs" />
     <Compile Include="TestClasses\TestClassB.cs" />

@@ -6,46 +6,46 @@ namespace Mojito
 {
     public interface IMojitoContainer
     {
-        void Singleton<T1, T2>(T2 implementation, string name) where T2 : T1;
-        void Singleton<T1, T2>(T2 implementation) where T2 : T1;
-        void Register<T1, T2>(string name) where T2 : T1;
-        void Register<T1, T2>() where T2 : T1;
-        void Register<T>(Func<object> factory, string name);
-        void Register<T>(Func<object> factory);
+        IDependencyRegistration Singleton<T1, T2>(T2 implementation, string name) where T2 : T1;
+        IDependencyRegistration Singleton<T1, T2>(T2 implementation) where T2 : T1;
+        IDependencyRegistration Register<T1, T2>(string name) where T2 : T1;
+        IDependencyRegistration Register<T1, T2>() where T2 : T1;
+        IDependencyRegistration Register<T>(Func<object> factory, string name);
+        IDependencyRegistration Register<T>(Func<object> factory);
         T Resolve<T>(string name);
         T Resolve<T>();
     }
 
     public class MojitoContainer : IMojitoContainer
     {
-        public void Singleton<T1, T2>(T2 implementation) where T2 : T1
+        public IDependencyRegistration Singleton<T1, T2>(T2 implementation) where T2 : T1
         {
-            Singleton<T1, T2>(implementation, string.Empty);
+            return Singleton<T1, T2>(implementation, string.Empty);
         }
 
-        public void Singleton<T1, T2>(T2 implementation, string name) where T2 : T1
+        public IDependencyRegistration Singleton<T1, T2>(T2 implementation, string name) where T2 : T1
         {
-            Register(typeof(T1), name, () => implementation);
+            return Register(typeof(T1), name, () => implementation);
         }
 
-        public void Register<T1, T2>() where T2 : T1
+        public IDependencyRegistration Register<T1, T2>() where T2 : T1
         {
-            Register<T1, T2>(string.Empty);
+            return Register<T1, T2>(string.Empty);
         }
 
-        public void Register<T1, T2>(string name) where T2 : T1
+        public IDependencyRegistration Register<T1, T2>(string name) where T2 : T1
         {
-            Register(typeof(T1), name, () => Activator.CreateInstance<T2>());
+            return Register(typeof(T1), name, () => Activator.CreateInstance<T2>());
         }
 
-        public void Register<T>(Func<object> factory)
+        public IDependencyRegistration Register<T>(Func<object> factory)
         {
-            Register<T>(factory, string.Empty);
+            return Register<T>(factory, string.Empty);
         }
 
-        public void Register<T>(Func<object> factory, string name)
+        public IDependencyRegistration Register<T>(Func<object> factory, string name)
         {
-            Register(typeof(T), name, factory);
+            return Register(typeof(T), name, factory);
         }
 
         public T Resolve<T>()
@@ -56,23 +56,26 @@ namespace Mojito
         public T Resolve<T>(string name)
         {
             var key = new Tuple<Type, string>(typeof(T), name);
-            Func<object> factory;
+            IDependencyRegistration dependencyRegistration;
 
-            if (_registrations.TryGetValue(key, out factory)) return (T) factory.Invoke();
+            if (_registrations.TryGetValue(key, out dependencyRegistration)) return dependencyRegistration.Resolve<T>();
 
             if (typeof(T).IsInterface || typeof(T).IsAbstract)
                 throw new UnknownRegistrationException(nameof(T));
 
-            factory = _registrations[key] = () => Activator.CreateInstance<T>();
+            dependencyRegistration = _registrations[key] = new DependencyRegistration(() => Activator.CreateInstance<T>());
 
-            return (T)factory.Invoke();
+            return dependencyRegistration.Resolve<T>();
         }
 
-        private void Register(Type type, string name, Func<object> factory)
+        private IDependencyRegistration Register(Type type, string name, Func<object> factory = null)
         {
             try
             {
-                _registrations.Add(Tuple.Create(type, name), factory);
+                var dependencyRegistration = new DependencyRegistration(factory);
+                _registrations.Add(Tuple.Create(type, name), dependencyRegistration);
+
+                return dependencyRegistration;
             }
             catch (ArgumentException)
             {
@@ -80,6 +83,6 @@ namespace Mojito
             }
         }
 
-        private readonly Dictionary<Tuple<Type, string>, Func<object>> _registrations = new Dictionary<Tuple<Type, string>, Func<object>>();
+        private readonly Dictionary<Tuple<Type, string>, IDependencyRegistration> _registrations = new Dictionary<Tuple<Type, string>, IDependencyRegistration>();
     }
 }

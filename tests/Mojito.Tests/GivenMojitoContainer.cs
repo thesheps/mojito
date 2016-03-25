@@ -1,4 +1,5 @@
-﻿using Mojito.Exceptions;
+﻿using System;
+using Mojito.Exceptions;
 using Mojito.Tests.TestClasses;
 using NUnit.Framework;
 
@@ -81,5 +82,26 @@ namespace Mojito.Tests
             var results = container.Resolve<TestClassA>();
             Assert.That(results, Is.Not.Null);
         }
+
+        [Test]
+        public void WhenIResolveAnInstanceWithNoParameterlessConstructor_ThenCouldNotResolveRegistrationExceptionIsThrown()
+        {
+            var container = new MojitoContainer();
+            container.Register<ITestClass, TestClassD>();
+
+            Assert.Throws<MissingMethodException>(() => container.Resolve<ITestClass>());
+        }
+
+        //[Test]
+        //public void WhenIResolveAnInstanceAndSpecifyCorrectlyNamedConstructorArgument_ThenInstanceIsCorrectlyInstantiated()
+        //{
+        //    var container = new MojitoContainer();
+        //    container.Register<ITestClass, TestClassD>()
+        //        .WithConstructorArgument("test", "Test");
+
+        //    var result = (TestClassD)container.Resolve<ITestClass>();
+        //    Assert.That(result, Is.Not.Null);
+        //    Assert.That(result.Test, Is.EqualTo("Test"));
+        //}
     }
 }
