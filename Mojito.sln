@@ -7,14 +7,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{1F7D58
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B2583FC6-7B98-4F75-95D1-97DEA4002F2D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D28A9A49-393B-4B63-B870-142F6D3A8025}"
-	ProjectSection(SolutionItems) = preProject
-		global.json = global.json
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mojito", "src\Mojito\Mojito.csproj", "{BB629455-8566-4881-870E-7B47EAD48046}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mojito.Tests", "tests\Mojito.Tests\Mojito.Tests.csproj", "{B56FC2B9-1D0C-4E2B-A955-C7CE2B9FEF41}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Nuget", "Nuget", "{0F2DDCCB-BF58-4C9F-902F-E1FADF931711}"
+	ProjectSection(SolutionItems) = preProject
+		..\lemonade\src\Mojito.nuspec = ..\lemonade\src\Mojito.nuspec
+		..\lemonade\src\nuget-icon.png = ..\lemonade\src\nuget-icon.png
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
