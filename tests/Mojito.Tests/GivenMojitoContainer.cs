@@ -1,4 +1,5 @@
-﻿using Mojito.Tests.TestClasses;
+﻿using Mojito.Exceptions;
+using Mojito.Tests.TestClasses;
 using NUnit.Framework;
 
 namespace Mojito.Tests
@@ -9,9 +10,8 @@ namespace Mojito.Tests
         public void WhenIRegisterATypeWithAParameterlessConstructor_ThenItCanSubsequentlyBeResolved()
         {
             var container = new MojitoContainer();
-            container.Register<TestClassA>();
-
             var result = container.Resolve<TestClassA>();
+
             Assert.That(result.GetType(), Is.EqualTo(typeof(TestClassA)));
             Assert.That(result, Is.Not.Null);
         }
@@ -20,11 +20,55 @@ namespace Mojito.Tests
         public void WhenIBindAnInterfaceToASingleConcreteType_ThenItCanSubsequentlyBeResolved()
         {
             var container = new MojitoContainer();
-            container.Bind<ITestClass>().To<TestClassA>();
+            container.Register<ITestClass, TestClassA>();
 
             var result = container.Resolve<ITestClass>();
             Assert.That(result.GetType(), Is.EqualTo(typeof(TestClassA)));
             Assert.That(result, Is.Not.Null);
+        }
+
+        [Test]
+        public void WhenIBindAnInterfaceToMultipleConcreteTypesWithoutNames_ThenADuplicateRegistrationExceptionIsThrown()
+        {
+            var container = new MojitoContainer();
+            container.Register<ITestClass, TestClassA>();
+            Assert.Throws<DuplicateRegistrationException>(() => { container.Register<ITestClass, TestClassB>(); });
+        }
+
+        [Test]
+        public void WhenIBindAnInterfaceToMultipleConcreteTypesWithNamedRegistrations_ThenICanDistinguishBetweenEachImplementation()
+        {
+            var container = new MojitoContainer();
+            container.Register<ITestClass, TestClassA>("A");
+            container.Register<ITestClass, TestClassB>("B");
+
+            var a = container.Resolve<ITestClass>("A");
+            var b = container.Resolve<ITestClass>("B");
+
+            Assert.That(a.GetType(), Is.EqualTo(typeof(TestClassA)));
+            Assert.That(b.GetType(), Is.EqualTo(typeof(TestClassB)));
+        }
+
+        [Test]
+        public void WhenIBindASingletonInstance_ThenConsecutiveResolutionsReturnTheSameInstance()
+        {
+            var container = new MojitoContainer();
+            container.Singleton<ITestClass, TestClassA>(new TestClassA());
+
+            var a = container.Resolve<ITestClass>();
+            var b = container.Resolve<ITestClass>();
+
+            Assert.That(a, Is.EqualTo(b));
+        }
+
+        [Test]
+        public void WhenIBindAnInterfaceToMultipleConcreteTypesWithNamedRegistrationsAndAttemptToResolveWithoutName_ThenUnknownRegistrationExceptionIsThrown()
+        {
+            var container = new MojitoContainer();
+            container.Register<ITestClass, TestClassA>("A");
+            container.Register<ITestClass, TestClassB>("B");
+
+            Assert.Throws<UnknownRegistrationException>(() => container.Resolve<ITestClass>());
         }
     }
 }

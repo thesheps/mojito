@@ -1,44 +1,85 @@
 ﻿using System;
 using System.Collections.Generic;
+using Mojito.Exceptions;
 
 namespace Mojito
 {
     public interface IMojitoContainer
     {
-        IBindingExpression<T> Bind<T>();
-        void Register<T>();
-        void Register<T>(T implementation);
+        void Singleton<T1, T2>(T2 implementation, string name) where T2 : T1;
+        void Singleton<T1, T2>(T2 implementation) where T2 : T1;
+        void Register<T1, T2>(string name);
+        void Register<T1, T2>() where T2 : T1;
+        void Register<T>(Func<object> factory, string name);
         void Register<T>(Func<object> factory);
+        T Resolve<T>(string name);
         T Resolve<T>();
     }
 
     public class MojitoContainer : IMojitoContainer
     {
-        public void Register<T>()
+        public void Singleton<T1, T2>(T2 implementation) where T2 : T1
         {
-            _registrations[typeof(T)] = () => Activator.CreateInstance<T>();
+            Singleton<T1, T2>(implementation, string.Empty);
         }
 
-        public void Register<T>(T implementation)
+        public void Singleton<T1, T2>(T2 implementation, string name) where T2 : T1
         {
-            _registrations[typeof(T)] = () => Activator.CreateInstance(implementation.GetType());
+            Register(typeof(T1), name, () => implementation);
+        }
+
+        public void Register<T1, T2>() where T2 : T1
+        {
+            Register<T1, T2>(string.Empty);
+        }
+
+        public void Register<T1, T2>(string name)
+        {
+            Register(typeof(T1), name, () => Activator.CreateInstance<T2>());
         }
 
         public void Register<T>(Func<object> factory)
         {
-            _registrations[typeof(T)] = factory;
+            Register<T>(factory, string.Empty);
+        }
+
+        public void Register<T>(Func<object> factory, string name)
+        {
+            Register(typeof(T), name, factory);
         }
 
         public T Resolve<T>()
         {
-            return (T)_registrations[typeof(T)].Invoke();
+            return Resolve<T>(string.Empty);
         }
 
-        public IBindingExpression<T> Bind<T>()
+        public T Resolve<T>(string name)
         {
-            return new BindingExpression<T>(this);
+            var key = new Tuple<Type, string>(typeof(T), name);
+            Func<object> factory;
+
+            if (_registrations.TryGetValue(key, out factory)) return (T) factory.Invoke();
+
+            if (typeof(T).IsInterface || typeof(T).IsAbstract)
+                throw new UnknownRegistrationException(nameof(T));
+
+            factory = _registrations[key] = () => Activator.CreateInstance<T>();
+
+            return (T)factory.Invoke();
         }
 
-        private readonly Dictionary<Type, Func<object>> _registrations = new Dictionary<Type, Func<object>>();
+        private void Register(Type type, string name, Func<object> factory)
+        {
+            try
+            {
+                _registrations.Add(Tuple.Create(type, name), factory);
+            }
+            catch (ArgumentException)
+            {
+                throw new DuplicateRegistrationException(nameof(type));
+            }
+        }
+
+        private readonly Dictionary<Tuple<Type, string>, Func<object>> _registrations = new Dictionary<Tuple<Type, string>, Func<object>>();
     }
 }
