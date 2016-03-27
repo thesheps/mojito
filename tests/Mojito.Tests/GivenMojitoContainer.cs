@@ -92,16 +92,16 @@ namespace Mojito.Tests
             Assert.Throws<MissingMethodException>(() => container.Resolve<ITestClass>());
         }
 
-        //[Test]
-        //public void WhenIResolveAnInstanceAndSpecifyCorrectlyNamedConstructorArgument_ThenInstanceIsCorrectlyInstantiated()
-        //{
-        //    var container = new MojitoContainer();
-        //    container.Register<ITestClass, TestClassD>()
-        //        .WithConstructorArgument("test", "Test");
+        [Test]
+        public void WhenIResolveAnInstanceAndSpecifyCorrectlyNamedConstructorArgument_ThenInstanceIsCorrectlyInstantiated()
+        {
+            var container = new MojitoContainer();
+            container.Register<ITestClass, TestClassD>()
+                .WithConstructorArgument("test", "Test");
 
-        //    var result = (TestClassD)container.Resolve<ITestClass>();
-        //    Assert.That(result, Is.Not.Null);
-        //    Assert.That(result.Test, Is.EqualTo("Test"));
-        //}
+            var result = (TestClassD)container.Resolve<ITestClass>();
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Test, Is.EqualTo("Test"));
+        }
     }
 }

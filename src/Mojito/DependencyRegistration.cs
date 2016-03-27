@@ -12,6 +12,11 @@ namespace Mojito
 
     public class DependencyRegistration : IDependencyRegistration
     {
+        public DependencyRegistration(Type type)
+        {
+            _factory = () => Activator.CreateInstance(type, _constructorArguments.Select(c => c.Value).ToArray());
+        }
+
         public DependencyRegistration(Func<object> factory)
         {
             _factory = factory;
@@ -19,9 +24,6 @@ namespace Mojito
 
         public T Resolve<T>()
         {
-            if (_factory == null)
-                _factory = () => Activator.CreateInstance(typeof(T), _constructorArguments.Select(c => c.Value).ToArray());
-
             return (T)_factory.Invoke();
         }
 
@@ -31,7 +33,7 @@ namespace Mojito
             return this;
         }
 
-        private Func<object> _factory;
+        private readonly Func<object> _factory;
         private readonly Dictionary<string, object> _constructorArguments = new Dictionary<string, object>();
     }
 }

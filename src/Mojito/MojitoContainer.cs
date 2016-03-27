@@ -25,7 +25,10 @@ namespace Mojito
 
         public IDependencyRegistration Singleton<T1, T2>(T2 implementation, string name) where T2 : T1
         {
-            return Register(typeof(T1), name, () => implementation);
+            var dependencyRegistration = new DependencyRegistration(() => implementation);
+            AddRegistration(typeof(T1), name, dependencyRegistration);
+
+            return dependencyRegistration;
         }
 
         public IDependencyRegistration Register<T1, T2>() where T2 : T1
@@ -35,7 +38,10 @@ namespace Mojito
 
         public IDependencyRegistration Register<T1, T2>(string name) where T2 : T1
         {
-            return Register(typeof(T1), name, () => Activator.CreateInstance<T2>());
+            var dependencyRegistration = new DependencyRegistration(typeof(T2));
+            AddRegistration(typeof(T1), name, dependencyRegistration);
+
+            return dependencyRegistration;
         }
 
         public IDependencyRegistration Register<T>(Func<object> factory)
@@ -45,7 +51,10 @@ namespace Mojito
 
         public IDependencyRegistration Register<T>(Func<object> factory, string name)
         {
-            return Register(typeof(T), name, factory);
+            var dependencyRegistration = new DependencyRegistration(typeof(T));
+            AddRegistration(typeof(T), name, dependencyRegistration);
+
+            return dependencyRegistration;
         }
 
         public T Resolve<T>()
@@ -63,23 +72,21 @@ namespace Mojito
             if (typeof(T).IsInterface || typeof(T).IsAbstract)
                 throw new UnknownRegistrationException(nameof(T));
 
-            dependencyRegistration = _registrations[key] = new DependencyRegistration(() => Activator.CreateInstance<T>());
+            dependencyRegistration = _registrations[key] = new DependencyRegistration(typeof(T));
 
             return dependencyRegistration.Resolve<T>();
         }
 
-        private IDependencyRegistration Register(Type type, string name, Func<object> factory = null)
+        private void AddRegistration(Type type, string name, IDependencyRegistration dependencyRegistration)
         {
             try
             {
-                var dependencyRegistration = new DependencyRegistration(factory);
-                _registrations.Add(Tuple.Create(type, name), dependencyRegistration);
-
-                return dependencyRegistration;
+                var key = new Tuple<Type, string>(type, name);
+                _registrations.Add(key, dependencyRegistration);
             }
             catch (ArgumentException)
             {
-                throw new DuplicateRegistrationException(nameof(type));
+                throw new DuplicateRegistrationException(type.FullName);
             }
         }
 
