@@ -93,15 +93,63 @@ namespace Mojito.Tests
         }
 
         [Test]
-        public void WhenIResolveAnInstanceAndSpecifyCorrectlyNamedConstructorArgument_ThenInstanceIsCorrectlyInstantiated()
+        public void WhenIResolveAnInstanceAndSpecifyConstructorArgument_ThenInstanceIsCorrectlyInstantiated()
         {
             var container = new MojitoContainer();
             container.Register<ITestClass, TestClassD>()
-                .WithConstructorArgument("test", "Test");
+                .WithArgument("Test");
 
             var result = (TestClassD)container.Resolve<ITestClass>();
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Test, Is.EqualTo("Test"));
+        }
+
+        [Test]
+        public void WhenIResolveAnInstanceAndSpecifyConnectionString_ThenInstanceIsCorrectlyInstantiated()
+        {
+            var container = new MojitoContainer();
+            container.Register<ITestClass, TestClassD>()
+                .WithConnectionString("Test");
+
+            var result = (TestClassD)container.Resolve<ITestClass>();
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Test, Is.EqualTo("Data Source=Test.db;Version=3;"));
+        }
+
+        [Test]
+        public void WhenIResolveAnInstanceAndSpecifyStringAppSetting_ThenInstanceIsCorrectlyInstantiated()
+        {
+            var container = new MojitoContainer();
+            container.Register<ITestClass, TestClassD>()
+                .WithAppSetting<string>("TestString");
+
+            var result = (TestClassD)container.Resolve<ITestClass>();
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.Test, Is.EqualTo("TestString"));
+        }
+
+        [Test]
+        public void WhenIResolveAnInstanceAndSpecifyIntegerAppSetting_ThenInstanceIsCorrectlyInstantiated()
+        {
+            var container = new MojitoContainer();
+            container.Register<ITestClass, TestClassD>()
+                .WithAppSetting<int>("TestInt");
+
+            var result = (TestClassD)container.Resolve<ITestClass>();
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.TestInt, Is.EqualTo(42));
+        }
+
+        [Test]
+        public void WhenIResolveAnInstanceAndSpecifyDateTimeAppSetting_ThenInstanceIsCorrectlyInstantiated()
+        {
+            var container = new MojitoContainer();
+            container.Register<ITestClass, TestClassD>()
+                .WithAppSetting<DateTime>("TestDateTime");
+
+            var result = (TestClassD)container.Resolve<ITestClass>();
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.TestDateTime, Is.EqualTo(DateTime.Parse("1985-09-11 11:00:00")));
         }
     }
 }

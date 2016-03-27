@@ -25,7 +25,7 @@ namespace Mojito
 
         public IDependencyRegistration Singleton<T1, T2>(T2 implementation, string name) where T2 : T1
         {
-            var dependencyRegistration = new DependencyRegistration(() => implementation);
+            var dependencyRegistration = new DependencyRegistration(() => implementation, this);
             AddRegistration(typeof(T1), name, dependencyRegistration);
 
             return dependencyRegistration;
@@ -38,7 +38,7 @@ namespace Mojito
 
         public IDependencyRegistration Register<T1, T2>(string name) where T2 : T1
         {
-            var dependencyRegistration = new DependencyRegistration(typeof(T2));
+            var dependencyRegistration = new DependencyRegistration(typeof(T2), this);
             AddRegistration(typeof(T1), name, dependencyRegistration);
 
             return dependencyRegistration;
@@ -51,7 +51,7 @@ namespace Mojito
 
         public IDependencyRegistration Register<T>(Func<object> factory, string name)
         {
-            var dependencyRegistration = new DependencyRegistration(typeof(T));
+            var dependencyRegistration = new DependencyRegistration(typeof(T), this);
             AddRegistration(typeof(T), name, dependencyRegistration);
 
             return dependencyRegistration;
@@ -72,7 +72,7 @@ namespace Mojito
             if (typeof(T).IsInterface || typeof(T).IsAbstract)
                 throw new UnknownRegistrationException(nameof(T));
 
-            dependencyRegistration = _registrations[key] = new DependencyRegistration(typeof(T));
+            dependencyRegistration = _registrations[key] = new DependencyRegistration(typeof(T), this);
 
             return dependencyRegistration.Resolve<T>();
         }
@@ -81,8 +81,7 @@ namespace Mojito
         {
             try
             {
-                var key = new Tuple<Type, string>(type, name);
-                _registrations.Add(key, dependencyRegistration);
+                _registrations.Add(new Tuple<Type, string>(type, name), dependencyRegistration);
             }
             catch (ArgumentException)
             {
