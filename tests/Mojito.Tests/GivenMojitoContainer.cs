@@ -207,5 +207,14 @@ namespace Mojito.Tests
 
             Assert.Throws<DuplicateRegistrationException>(() => container.Resolve<IDuplicateHandler<TestClassA>>());
         }
+
+        [Test]
+        public void WhenIResolveAGenericImplementationWithAutomaticRegistrationAndNoParameterlessConstructor_ThenInstanceCanBeResolved()
+        {
+            var container = new MojitoContainer { UseAutomaticRegistration = true };
+            var result = container.Resolve<ITestClassHandler<TestClassA>>();
+
+            Assert.That(result.GetType(), Is.EqualTo(typeof(TestClassAHandler)));
+        }
     }
 }

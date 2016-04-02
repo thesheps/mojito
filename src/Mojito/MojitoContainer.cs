@@ -88,23 +88,20 @@ namespace Mojito
 
             if (type.IsInterface || type.IsAbstract)
             {
-                if (!type.IsGenericType)
+                if (!type.IsGenericType || !UseAutomaticRegistration)
                     throw new UnknownRegistrationException(type);
 
-                if (!UseAutomaticRegistration)
-                    throw new UnknownRegistrationException(type);
-
-                var genericTypes = AppDomain.CurrentDomain.GetAssemblies()
+                var registrations = AppDomain.CurrentDomain.GetAssemblies()
                     .SelectMany(a => a.GetTypes().Where(t => t.GetInterfaces().Any(i => i == type)))
                     .ToList();
 
-                if (!genericTypes.Any())
+                if (!registrations.Any())
                     throw new UnknownRegistrationException(type);
 
-                if (genericTypes.Count() > 1)
+                if (registrations.Count() > 1)
                     throw new DuplicateRegistrationException(type);
 
-                return Resolve(genericTypes[0]);
+                return Resolve(registrations[0]);
             }
 
             dependencyRegistration = _registrations[key] = new DependencyRegistration(this, type);
