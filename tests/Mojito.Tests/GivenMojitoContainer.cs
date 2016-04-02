@@ -161,5 +161,51 @@ namespace Mojito.Tests
             Assert.That(result, Is.Not.Null);
             Assert.That(result.GetType(), Is.EqualTo(typeof(TestClassE)));
         }
+
+        [Test]
+        public void WhenIResolve2Instances_ThenEachInstanceIsUnique()
+        {
+            var container = new MojitoContainer();
+            container.Register<ITestClass, TestClassA>();
+
+            var a = container.Resolve<ITestClass>();
+            var b = container.Resolve<ITestClass>();
+
+            Assert.That(a, Is.Not.EqualTo(b));
+        }
+
+        [Test]
+        public void WhenIRegisterAGenericType_ThenInstanceCanBeResolved()
+        {
+            var container = new MojitoContainer();
+            container.Register<ITestClassHandler<TestClassA>, TestClassAHandler>();
+
+            var result = container.Resolve<ITestClassHandler<TestClassA>>();
+            Assert.That(result.GetType(), Is.EqualTo(typeof(TestClassAHandler)));
+        }
+
+        [Test]
+        public void WhenIResolveAGenericImplementationWithoutAutomaticRegistration_ThenUnknownRegistrationExceptionIsThrown()
+        {
+            var container = new MojitoContainer();
+            Assert.Throws<UnknownRegistrationException>(() => container.Resolve<ITestClassHandler<TestClassA>>());
+        }
+
+        [Test]
+        public void WhenIResolveAGenericImplementationWithAutomaticRegistration_ThenInstanceCanBeResolved()
+        {
+            var container = new MojitoContainer { UseAutomaticRegistration = true };
+            var result = container.Resolve<ITestClassHandler<TestClassA>>();
+
+            Assert.That(result.GetType(), Is.EqualTo(typeof(TestClassAHandler)));
+        }
+
+        [Test]
+        public void WhenIResolveAGenericImplementationWithAutomaticRegistrationAndMultipleMatches_ThenDuplicateRegistrationExceptionIsThrown()
+        {
+            var container = new MojitoContainer { UseAutomaticRegistration = true };
+
+            Assert.Throws<DuplicateRegistrationException>(() => container.Resolve<IDuplicateHandler<TestClassA>>());
+        }
     }
 }

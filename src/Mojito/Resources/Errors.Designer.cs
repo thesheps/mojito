@@ -70,7 +70,7 @@ namespace Mojito.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot register implementation - The specified base type {0} has already been registered..
+        ///   Looks up a localized string similar to Cannot register implementation - The specified type {0} has already been registered..
         /// </summary>
         internal static string DuplicateRegistration {
             get {

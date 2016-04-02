@@ -121,7 +121,7 @@
     <value>Cannot resolve implementation - The specified type {0} has dependencies waiting to be satisfied.</value>
   </data>
   <data name="DuplicateRegistration" xml:space="preserve">
-    <value>Cannot register implementation - The specified base type {0} has already been registered.</value>
+    <value>Cannot register implementation - The specified type {0} has already been registered.</value>
   </data>
   <data name="UnknownRegistration" xml:space="preserve">
     <value>Cannot resolve implementation - The specified registration does not exist (is there a missing name?)</value>

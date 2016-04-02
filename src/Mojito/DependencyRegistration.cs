@@ -15,8 +15,10 @@ namespace Mojito
         IDependencyRegistration WithAppSetting<T>(string name, string settingName);
     }
 
-    public class DependencyRegistration : IDependencyRegistration
+    public class DependencyRegistration : IDependencyRegistration, IMojitoContainer
     {
+        public bool UseAutomaticRegistration => _mojitoContainer.UseAutomaticRegistration;
+
         public DependencyRegistration(IMojitoContainer mojitoContainer, Func<object> factory)
         {
             _mojitoContainer = mojitoContainer;
@@ -78,6 +80,26 @@ namespace Mojito
             return _mojitoContainer.Register<T>(factory, name);
         }
 
+        public object Resolve(Type type)
+        {
+            return _mojitoContainer.Resolve(type);
+        }
+
+        public object Resolve(Type type, string name)
+        {
+            return _mojitoContainer.Resolve(type, name);
+        }
+
+        public T Resolve<T>()
+        {
+            return _mojitoContainer.Resolve<T>();
+        }
+
+        public T Resolve<T>(string name)
+        {
+            return _mojitoContainer.Resolve<T>(name);
+        }
+        
         public object Resolve()
         {
             return _factory.Invoke();

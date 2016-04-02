@@ -1,25 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mojito.Exceptions;
 
 namespace Mojito
 {
     public interface IMojitoContainer
     {
-        IDependencyRegistration Singleton<T1, T2>(T2 implementation, string name) where T2 : T1;
+        bool UseAutomaticRegistration { get; }
         IDependencyRegistration Singleton<T1, T2>(T2 implementation) where T2 : T1;
-        IDependencyRegistration Register<T1, T2>(string name) where T2 : T1;
+        IDependencyRegistration Singleton<T1, T2>(T2 implementation, string name) where T2 : T1;
         IDependencyRegistration Register<T1, T2>() where T2 : T1;
-        IDependencyRegistration Register<T>(Func<object> factory, string name);
+        IDependencyRegistration Register<T1, T2>(string name) where T2 : T1;
         IDependencyRegistration Register<T>(Func<object> factory);
-        object Resolve(Type type, string name);
+        IDependencyRegistration Register<T>(Func<object> factory, string name);
         object Resolve(Type type);
-        T Resolve<T>(string name);
+        object Resolve(Type type, string name);
         T Resolve<T>();
+        T Resolve<T>(string name);
     }
 
     public class MojitoContainer : IMojitoContainer
     {
+        public bool UseAutomaticRegistration { get; set; }
+
         public IDependencyRegistration Singleton<T1, T2>(T2 implementation) where T2 : T1
         {
             return Singleton<T1, T2>(implementation, string.Empty);
@@ -83,7 +87,25 @@ namespace Mojito
                 return dependencyRegistration.Resolve();
 
             if (type.IsInterface || type.IsAbstract)
-                throw new UnknownRegistrationException(type);
+            {
+                if (!type.IsGenericType)
+                    throw new UnknownRegistrationException(type);
+
+                if (!UseAutomaticRegistration)
+                    throw new UnknownRegistrationException(type);
+
+                var genericTypes = AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(a => a.GetTypes().Where(t => t.GetInterfaces().Any(i => i == type)))
+                    .ToList();
+
+                if (!genericTypes.Any())
+                    throw new UnknownRegistrationException(type);
+
+                if (genericTypes.Count() > 1)
+                    throw new DuplicateRegistrationException(type);
+
+                return Resolve(genericTypes[0]);
+            }
 
             dependencyRegistration = _registrations[key] = new DependencyRegistration(this, type);
 
