@@ -1,0 +1,19 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Mojito</id>
+    <version>$version$</version>
+    <title>Mojito</title>
+    <authors>Chris Shepherd</authors>
+    <owners>Chris Shepherd</owners>
+    <iconUrl>https://raw.githubusercontent.com/thesheps/mojito/master/src/nuget-icon.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Mojito is a lightweight, feature-rich IoC framework.</description>
+    <releaseNotes></releaseNotes>
+    <tags>inversion of control IoC dependency injection web request</tags>
+  </metadata>
+
+  <files>
+    <file src="Lemonade\bin\$configuration$\Mojito.dll" target="lib" />
+  </files>
+</package>
