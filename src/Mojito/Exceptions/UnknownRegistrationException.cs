@@ -4,8 +4,8 @@ namespace Mojito.Exceptions
 {
     public class UnknownRegistrationException : Exception
     {
-        public UnknownRegistrationException(string type)
-            : base(string.Format(Resources.Errors.UnknownRegistration, type))
+        public UnknownRegistrationException(Type type)
+            : base(string.Format(Resources.Errors.UnknownRegistration, type.FullName))
         {
         }
     }

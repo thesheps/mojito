@@ -5,8 +5,8 @@ namespace Mojito.Exceptions
 {
     public class DuplicateRegistrationException : Exception
     {
-        public DuplicateRegistrationException(string baseType)
-            : base(string.Format(Errors.DuplicateRegistration, baseType))
+        public DuplicateRegistrationException(Type type)
+            : base(string.Format(Errors.DuplicateRegistration, type.FullName))
         {
         }
     }

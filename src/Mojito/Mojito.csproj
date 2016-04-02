@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exceptions\CouldNotResolveRegistrationException.cs" />
     <Compile Include="Exceptions\UnknownRegistrationException.cs" />
     <Compile Include="DependencyRegistration.cs" />
     <Compile Include="Resources\Errors.Designer.cs">

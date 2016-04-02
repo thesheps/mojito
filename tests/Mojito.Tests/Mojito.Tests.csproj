@@ -51,6 +51,7 @@
     <Compile Include="TestClasses\TestClassC.cs" />
     <Compile Include="TestClasses\TestClassB.cs" />
     <Compile Include="TestClasses\TestClassA.cs" />
+    <Compile Include="TestClasses\TestClassE.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

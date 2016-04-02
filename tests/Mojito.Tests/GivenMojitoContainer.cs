@@ -89,7 +89,7 @@ namespace Mojito.Tests
             var container = new MojitoContainer();
             container.Register<ITestClass, TestClassD>();
 
-            Assert.Throws<MissingMethodException>(() => container.Resolve<ITestClass>());
+            Assert.Throws<CouldNotResolveRegistrationException>(() => container.Resolve<ITestClass>());
         }
 
         [Test]
@@ -97,7 +97,7 @@ namespace Mojito.Tests
         {
             var container = new MojitoContainer();
             container.Register<ITestClass, TestClassD>()
-                .WithArgument("Test");
+                .WithArgument("test", "Test");
 
             var result = (TestClassD)container.Resolve<ITestClass>();
             Assert.That(result, Is.Not.Null);
@@ -109,7 +109,7 @@ namespace Mojito.Tests
         {
             var container = new MojitoContainer();
             container.Register<ITestClass, TestClassD>()
-                .WithConnectionString("Test");
+                .WithConnectionString("test", "Test");
 
             var result = (TestClassD)container.Resolve<ITestClass>();
             Assert.That(result, Is.Not.Null);
@@ -121,7 +121,7 @@ namespace Mojito.Tests
         {
             var container = new MojitoContainer();
             container.Register<ITestClass, TestClassD>()
-                .WithAppSetting<string>("TestString");
+                .WithAppSetting<string>("test", "TestString");
 
             var result = (TestClassD)container.Resolve<ITestClass>();
             Assert.That(result, Is.Not.Null);
@@ -133,7 +133,7 @@ namespace Mojito.Tests
         {
             var container = new MojitoContainer();
             container.Register<ITestClass, TestClassD>()
-                .WithAppSetting<int>("TestInt");
+                .WithAppSetting<int>("test", "TestInt");
 
             var result = (TestClassD)container.Resolve<ITestClass>();
             Assert.That(result, Is.Not.Null);
@@ -145,11 +145,21 @@ namespace Mojito.Tests
         {
             var container = new MojitoContainer();
             container.Register<ITestClass, TestClassD>()
-                .WithAppSetting<DateTime>("TestDateTime");
+                .WithAppSetting<DateTime>("test", "TestDateTime");
 
             var result = (TestClassD)container.Resolve<ITestClass>();
             Assert.That(result, Is.Not.Null);
             Assert.That(result.TestDateTime, Is.EqualTo(DateTime.Parse("1985-09-11 11:00:00")));
+        }
+
+        [Test]
+        public void WhenIResolveAnInstanceWithNonSpecifiedDependencies_ThenImpliedDependenciesAreResolvedUsingContainer()
+        {
+            var container = new MojitoContainer();
+            var result = container.Resolve<TestClassE>();
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.GetType(), Is.EqualTo(typeof(TestClassE)));
         }
     }
 }

@@ -12,6 +12,8 @@ namespace Mojito
         IDependencyRegistration Register<T1, T2>() where T2 : T1;
         IDependencyRegistration Register<T>(Func<object> factory, string name);
         IDependencyRegistration Register<T>(Func<object> factory);
+        object Resolve(Type type, string name);
+        object Resolve(Type type);
         T Resolve<T>(string name);
         T Resolve<T>();
     }
@@ -25,7 +27,7 @@ namespace Mojito
 
         public IDependencyRegistration Singleton<T1, T2>(T2 implementation, string name) where T2 : T1
         {
-            var dependencyRegistration = new DependencyRegistration(() => implementation, this);
+            var dependencyRegistration = new DependencyRegistration(this, () => implementation);
             AddRegistration(typeof(T1), name, dependencyRegistration);
 
             return dependencyRegistration;
@@ -38,7 +40,7 @@ namespace Mojito
 
         public IDependencyRegistration Register<T1, T2>(string name) where T2 : T1
         {
-            var dependencyRegistration = new DependencyRegistration(typeof(T2), this);
+            var dependencyRegistration = new DependencyRegistration(this, typeof(T2));
             AddRegistration(typeof(T1), name, dependencyRegistration);
 
             return dependencyRegistration;
@@ -51,7 +53,7 @@ namespace Mojito
 
         public IDependencyRegistration Register<T>(Func<object> factory, string name)
         {
-            var dependencyRegistration = new DependencyRegistration(typeof(T), this);
+            var dependencyRegistration = new DependencyRegistration(this, typeof(T));
             AddRegistration(typeof(T), name, dependencyRegistration);
 
             return dependencyRegistration;
@@ -59,22 +61,33 @@ namespace Mojito
 
         public T Resolve<T>()
         {
-            return Resolve<T>(string.Empty);
+            return (T)Resolve(typeof(T), string.Empty);
         }
 
         public T Resolve<T>(string name)
         {
-            var key = new Tuple<Type, string>(typeof(T), name);
+            return (T)Resolve(typeof(T), name);
+        }
+
+        public object Resolve(Type type)
+        {
+            return Resolve(type, string.Empty);
+        }
+
+        public object Resolve(Type type, string name)
+        {
+            var key = new Tuple<Type, string>(type, name);
             IDependencyRegistration dependencyRegistration;
 
-            if (_registrations.TryGetValue(key, out dependencyRegistration)) return dependencyRegistration.Resolve<T>();
+            if (_registrations.TryGetValue(key, out dependencyRegistration))
+                return dependencyRegistration.Resolve();
 
-            if (typeof(T).IsInterface || typeof(T).IsAbstract)
-                throw new UnknownRegistrationException(nameof(T));
+            if (type.IsInterface || type.IsAbstract)
+                throw new UnknownRegistrationException(type);
 
-            dependencyRegistration = _registrations[key] = new DependencyRegistration(typeof(T), this);
+            dependencyRegistration = _registrations[key] = new DependencyRegistration(this, type);
 
-            return dependencyRegistration.Resolve<T>();
+            return dependencyRegistration.Resolve();
         }
 
         private void AddRegistration(Type type, string name, IDependencyRegistration dependencyRegistration)
@@ -85,7 +98,7 @@ namespace Mojito
             }
             catch (ArgumentException)
             {
-                throw new DuplicateRegistrationException(type.FullName);
+                throw new DuplicateRegistrationException(type);
             }
         }
 

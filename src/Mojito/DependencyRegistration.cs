@@ -2,29 +2,50 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Reflection;
+using Mojito.Exceptions;
 
 namespace Mojito
 {
     public interface IDependencyRegistration
     {
-        T Resolve<T>();
-        IDependencyRegistration WithArgument<T>(T value);
-        IDependencyRegistration WithConnectionString(string connectionStringName);
-        IDependencyRegistration WithAppSetting<T>(string settingName);
+        object Resolve();
+        IDependencyRegistration WithArgument<T>(string name, T value);
+        IDependencyRegistration WithConnectionString(string name, string connectionStringName);
+        IDependencyRegistration WithAppSetting<T>(string name, string settingName);
     }
 
-    public class DependencyRegistration : IDependencyRegistration, IMojitoContainer
+    public class DependencyRegistration : IDependencyRegistration
     {
-        public DependencyRegistration(Type type, IMojitoContainer mojitoContainer)
+        public DependencyRegistration(IMojitoContainer mojitoContainer, Func<object> factory)
         {
             _mojitoContainer = mojitoContainer;
-            _factory = () => Activator.CreateInstance(type, _constructorArguments.ToArray());
+            _factory = factory;
         }
 
-        public DependencyRegistration(Func<object> factory, IMojitoContainer mojitoContainer)
+        public DependencyRegistration(IMojitoContainer mojitoContainer, Type type)
         {
-            _factory = factory;
             _mojitoContainer = mojitoContainer;
+            _factory = () =>
+            {
+                try
+                {
+                    var constructor = type
+                        .GetConstructors()
+                        .Select(c => new Constructor(c, c.GetParameters().Select(p => GetParameter(p.ParameterType, p.Name)).ToList()))
+                        .OrderByDescending(p => p.Parameters.Count)
+                        .FirstOrDefault(c => c.Parameters.All(p => p != null));
+
+                    if (constructor == null)
+                        throw new CouldNotResolveRegistrationException(type);
+
+                    return constructor.Invoke();
+                }
+                catch (MissingMethodException)
+                {
+                    throw new CouldNotResolveRegistrationException(type);
+                }
+            };
         }
 
         public IDependencyRegistration Singleton<T1, T2>(T2 implementation) where T2 : T1
@@ -57,34 +78,50 @@ namespace Mojito
             return _mojitoContainer.Register<T>(factory, name);
         }
 
-        public T Resolve<T>(string name)
+        public object Resolve()
         {
-            return _mojitoContainer.Resolve<T>(name);
+            return _factory.Invoke();
         }
 
-        public T Resolve<T>()
+        public IDependencyRegistration WithArgument<T>(string name, T value)
         {
-            return (T)_factory.Invoke();
-        }
-
-        public IDependencyRegistration WithArgument<T>(T value)
-        {
-            _constructorArguments.Add(value);
+            _constructorArguments.Add(new Tuple<Type, string>(typeof(T), name), value);
             return this;
         }
 
-        public IDependencyRegistration WithConnectionString(string connectionStringName)
+        public IDependencyRegistration WithConnectionString(string name, string connectionStringName)
         {
-            _constructorArguments.Add(ConfigurationManager.ConnectionStrings[connectionStringName].ConnectionString);
+            _constructorArguments.Add(new Tuple<Type, string>(typeof(string), name), ConfigurationManager.ConnectionStrings[connectionStringName].ConnectionString);
             return this;
         }
 
-        public IDependencyRegistration WithAppSetting<T>(string settingName)
+        public IDependencyRegistration WithAppSetting<T>(string name, string settingName)
         {
             var value = GetAppSetting<T>(settingName);
-            _constructorArguments.Add(value);
+            _constructorArguments.Add(new Tuple<Type, string>(typeof(T), name), value);
 
             return this;
+        }
+
+        private object GetParameter(Type type, string name)
+        {
+            object parameter;
+            if (_constructorArguments.TryGetValue(new Tuple<Type, string>(type, name), out parameter))
+                return parameter;
+
+            if (type.IsValueType || _ignoredTypes.Contains(type))
+                return null;
+
+            try
+            {
+                parameter = _mojitoContainer.Resolve(type);
+            }
+            catch (CouldNotResolveRegistrationException)
+            {
+                parameter = null;
+            }
+
+            return parameter;
         }
 
         private static T GetAppSetting<T>(string settingName)
@@ -96,8 +133,27 @@ namespace Mojito
             return (T)Convert.ChangeType(value, typeof(T));
         }
 
-        private readonly Func<object> _factory;
-        private readonly IList<object> _constructorArguments = new List<object>();
+        private readonly Dictionary<Tuple<Type, string>, object> _constructorArguments = new Dictionary<Tuple<Type, string>, object>();
+        private readonly IList<Type> _ignoredTypes = new[] { typeof(string), typeof(DateTime), };
         private readonly IMojitoContainer _mojitoContainer;
+        private readonly Func<object> _factory;
+
+        private class Constructor
+        {
+            public IList<object> Parameters { get; }
+
+            public Constructor(ConstructorInfo constructorInfo, IList<object> parameters)
+            {
+                _constructorInfo = constructorInfo;
+                Parameters = parameters;
+            }
+
+            public object Invoke()
+            {
+                return _constructorInfo.Invoke(Parameters.ToArray());
+            }
+
+            private readonly ConstructorInfo _constructorInfo;
+        }
     }
 }

@@ -61,6 +61,15 @@ namespace Mojito.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot resolve implementation - The specified type {0} has dependencies waiting to be satisfied..
+        /// </summary>
+        internal static string CouldNotResolveRegistration {
+            get {
+                return ResourceManager.GetString("CouldNotResolveRegistration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot register implementation - The specified base type {0} has already been registered..
         /// </summary>
         internal static string DuplicateRegistration {
