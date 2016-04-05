@@ -70,6 +70,16 @@ namespace Mojito
             return this;
         }
 
+        public IMojitoContainer Install(IList<IMojitoInstaller> installers)
+        {
+            foreach (var mojitoInstaller in installers)
+            {
+                mojitoInstaller.Register(this);
+            }
+
+            return this;
+        }
+
         public T Resolve<T>()
         {
             return (T)Resolve(typeof(T), string.Empty);
