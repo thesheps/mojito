@@ -216,5 +216,15 @@ namespace Mojito.Tests
 
             Assert.That(result.GetType(), Is.EqualTo(typeof(TestClassAHandler)));
         }
+
+        [Test]
+        public void WhenIInstallDependenciesUsingAnInstaller_ThenTheRegistrationsCanSubsequentlyBeResolved()
+        {
+            var container = new MojitoContainer();
+            container.Install(new TestInstaller());
+
+            var a = container.Resolve<ITestClass>();
+            Assert.That(a.GetType(), Is.EqualTo(typeof(TestClassA)));
+        }
     }
 }

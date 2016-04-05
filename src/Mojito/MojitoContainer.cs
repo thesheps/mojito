@@ -14,6 +14,7 @@ namespace Mojito
         IDependencyRegistration Register<T1, T2>(string name) where T2 : T1;
         IDependencyRegistration Register<T>(Func<object> factory);
         IDependencyRegistration Register<T>(Func<object> factory, string name);
+        IMojitoContainer Install(IMojitoInstaller installer);
         object Resolve(Type type);
         object Resolve(Type type, string name);
         T Resolve<T>();
@@ -61,6 +62,12 @@ namespace Mojito
             AddRegistration(typeof(T), name, dependencyRegistration);
 
             return dependencyRegistration;
+        }
+
+        public IMojitoContainer Install(IMojitoInstaller installer)
+        {
+            installer.Register(this);
+            return this;
         }
 
         public T Resolve<T>()
