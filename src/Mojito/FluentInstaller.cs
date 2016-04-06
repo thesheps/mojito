@@ -4,9 +4,14 @@ using System.Linq;
 
 namespace Mojito
 {
-    public class From
+    public interface IFluentInstaller
     {
-        public static IList<IMojitoInstaller> AssemblyContaining<T>()
+        IList<IMojitoInstaller> AssemblyContaining<T>();
+    }
+
+    public class FluentInstaller : IFluentInstaller
+    {
+        public IList<IMojitoInstaller> AssemblyContaining<T>()
         {
             return typeof(T)
                 .Assembly

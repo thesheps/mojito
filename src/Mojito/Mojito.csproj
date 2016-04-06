@@ -41,10 +41,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Conventions\All.cs" />
     <Compile Include="Exceptions\CouldNotResolveRegistrationException.cs" />
     <Compile Include="Exceptions\UnknownRegistrationException.cs" />
     <Compile Include="DependencyRegistration.cs" />
-    <Compile Include="From.cs" />
+    <Compile Include="Conventions\Installers.cs" />
     <Compile Include="IMojitoInstaller.cs" />
     <Compile Include="Resources\Errors.Designer.cs">
       <AutoGen>True</AutoGen>

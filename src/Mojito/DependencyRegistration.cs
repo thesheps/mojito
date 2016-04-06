@@ -80,6 +80,11 @@ namespace Mojito
             return _mojitoContainer.Register<T>(factory, name);
         }
 
+        public IMojitoContainer Install(IList<IMojitoInstaller> installers)
+        {
+            return _mojitoContainer.Install(installers);
+        }
+
         public IMojitoContainer Install(IMojitoInstaller installer)
         {
             return _mojitoContainer.Install(installer);

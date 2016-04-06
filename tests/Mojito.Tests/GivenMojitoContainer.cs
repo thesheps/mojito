@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections;
+using Mojito.Conventions;
 using Mojito.Exceptions;
 using Mojito.Tests.TestClasses;
 using NUnit.Framework;
@@ -232,7 +232,7 @@ namespace Mojito.Tests
         public void WhenISpecifyInstallersByAssembly_ThenRegistrationsCanSubsequentlyBeResolved()
         {
             var container = new MojitoContainer();
-            container.Install(From.AssemblyContaining<TestInstaller>());
+            container.Install(All.Installers.FromAssemblyContaining<TestInstaller>());
 
             var a = container.Resolve<ITestClass>();
             Assert.That(a.GetType(), Is.EqualTo(typeof(TestClassA)));
